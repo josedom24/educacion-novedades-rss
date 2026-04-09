@@ -29,4 +29,4 @@ jobs:
           git config --global user.name "Claude Bot"
           git config --global user.email "claude-bot@example.com"
           git add feed.xml
-          git diff --quiet && echo "No changes to commit" || (git commit -m "Update RSS feed: $(date)" && git push)
+          git diff --staged --quiet && echo "No changes to commit" || (git commit -m "Update RSS feed: $(date)" && git push)
