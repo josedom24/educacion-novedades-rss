@@ -72,6 +72,7 @@ def generate_rss(news_items):
         fe = fg.add_entry()
         fe.title(item['title'])
         fe.link(href=item['link'])
+        fe.guid(item['link'], permalink=True)
         # Intentamos parsear la fecha si es posible, si no, ponemos la actual
         # El formato es "30 mar 2026"
         try:
