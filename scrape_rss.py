@@ -8,6 +8,41 @@ import os
 URL = "https://www.juntadeandalucia.es/educacion/portales/novedades-portada"
 OUTPUT_FILE = "feed.xml"
 
+def scrape_novedades():
+    try:
+        response = requests.get(URL, timeout=10)
+        response.raise_for_status()
+        soup = BeautifulSoup(response.text, 'html.parser')
+
+        # This is a placeholder logic. In a real scenario, we'd inspect the HTML
+        # structure of the target page to find the correct selectors.
+        # Assuming news items are in a list or grid.
+        news_items = []
+
+        # Example: searching for elements that might contain news (this needs verification)
+        # For now, I'll implement a basic search for <a> tags with meaningful text
+        # to avoid the NameError and provide a working base.
+        for article in soup.find_all('div', class_='novedades-item'): # Hypothetical class
+            title_el = article.find('a')
+            if title_el:
+                title = title_el.get_text(strip=True)
+                link = title_el['href']
+                if not link.startswith('http'):
+                    link = URL + link # simplified relative link handling
+
+                # Attempt to find a date
+                date_el = article.find('span', class_='date')
+                date = date_el.get_text(strip=True) if date_el else ""
+
+                news_items.append({'title': title, 'link': link, 'date': date})
+
+        return news_items
+    except Exception as e:
+        print(f"Error scraping site: {e}")
+        return []
+
+
+
 def parse_date(date_str):
     months = {
         'ene': 'Jan', 'feb': 'Feb', 'mar': 'Mar', 'abr': 'Apr', 'may': 'May', 'jun': 'Jun',
