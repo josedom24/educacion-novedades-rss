@@ -3,7 +3,6 @@ from bs4 import BeautifulSoup
 from feedgen.feed import FeedGenerator
 from datetime import datetime, timezone
 import hashlib
-import os
 
 # Configuración
 URL = "https://www.juntadeandalucia.es/educacion/portales/novedades-portada"
@@ -53,6 +52,22 @@ def scrape_novedades():
 
     return news_items
 
+def parse_date(date_text):
+    months = {
+        'ene': 'Jan', 'feb': 'Feb', 'mar': 'Mar', 'abr': 'Apr', 'may': 'May', 'jun': 'Jun',
+        'jul': 'Jul', 'ago': 'Aug', 'sep': 'Sep', 'oct': 'Oct', 'nov': 'Nov', 'dic': 'Dec'
+    }
+    try:
+        parts = date_text.split()
+        if len(parts) == 3:
+            day = parts[0]
+            month = months.get(parts[1].lower(), 'Jan')
+            year = parts[2]
+            return datetime.strptime(f"{day} {month} {year}", "%d %b %Y").replace(tzinfo=timezone.utc)
+    except Exception:
+        pass
+    return datetime.now(timezone.utc)
+
 def generate_rss(news_items):
     fg = FeedGenerator()
     fg.title('Novedades Educación - Junta de Andalucía')
@@ -60,10 +75,8 @@ def generate_rss(news_items):
     fg.link(href=URL)
     fg.updated(datetime.now(timezone.utc))
 
-    months = {
-        'ene': 'Jan', 'feb': 'Feb', 'mar': 'Mar', 'abr': 'Apr', 'may': 'May', 'jun': 'Jun',
-        'jul': 'Jul', 'ago': 'Aug', 'sep': 'Sep', 'oct': 'Oct', 'nov': 'Nov', 'dic': 'Dec'
-    }
+    # Ordenar por fecha, el más nuevo primero
+    news_items = sorted(news_items, key=lambda x: parse_date(x['date']), reverse=True)
 
     for item in news_items:
         fe = fg.add_entry()
@@ -74,20 +87,7 @@ def generate_rss(news_items):
         guid = hashlib.md5((item['title'] + item['date']).encode()).hexdigest()
         fe.id(f"https://www.juntadeandalucia.es/educacion/#{guid}")
 
-        try:
-            parts = item['date'].split()
-            if len(parts) == 3:
-                day = parts[0]
-                month = months.get(parts[1].lower(), 'Jan')
-                year = parts[2]
-                date_str = f"{day} {month} {year}"
-                dt = datetime.strptime(date_str, "%d %b %Y").replace(tzinfo=timezone.utc)
-                fe.published(dt)
-            else:
-                fe.published(datetime.now(timezone.utc))
-        except Exception as e:
-            print(f"Could not parse date {item['date']}: {e}")
-            fe.published(datetime.now(timezone.utc))
+        fe.published(parse_date(item['date']))
 
     fg.rss_file(OUTPUT_FILE)
     print(f"RSS feed generated successfully: {OUTPUT_FILE}")
