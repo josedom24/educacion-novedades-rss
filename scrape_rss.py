@@ -25,7 +25,6 @@ def parse_date(date_str):
         pass
     return datetime.now(timezone.utc)
 
-def scrape_novedades():
 
 def generate_rss(news_items):
     fg = FeedGenerator()
