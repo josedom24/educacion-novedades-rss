@@ -7,6 +7,7 @@ import hashlib
 # Configuración
 URL = "https://www.juntadeandalucia.es/educacion/portales/novedades-portada"
 OUTPUT_FILE = "feed.xml"
+FEED_URL = "https://josedom24.github.io/educacion-novedades-rss/feed.xml"
 
 def scrape_novedades():
     print(f"Fetching content from {URL}...")
@@ -73,6 +74,8 @@ def generate_rss(news_items):
     fg.title('Novedades Educación - Junta de Andalucía')
     fg.description('Feed automático de novedades del portal de educación de la Junta de Andalucía')
     fg.link(href=URL)
+    fg.link(href=FEED_URL, rel='self')
+    fg.language('es')
     fg.updated(datetime.now(timezone.utc))
 
     # Ordenar por fecha, el más nuevo primero
