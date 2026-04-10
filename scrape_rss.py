@@ -16,24 +16,29 @@ def scrape_novedades():
 
         news_items = []
 
-        # We found that news items are <a> tags with long text and specific href patterns
-        # focusing on links that contain '/web/educacion/w/' (common pattern for news items here)
-        for a in soup.find_all('a', href=True):
-            text = a.get_text(strip=True)
-            link = a['href']
+        # Find all news containers. Based on the HTML, they are in divs with class 'adt-novedades-ceps__item'
+        for article in soup.find_all('div', class_='adt-novedades-ceps__item'):
+            # Find the title link
+            title_el = article.find('a')
+            if not title_el:
+                continue
 
-            if len(text) > 50 and '/web/educacion/w/' in link:
+            text = title_el.get_text(strip=True)
+            link = title_el['href']
+
+            # We still want to ensure it's a real news item (long text)
+            if len(text) > 20:
                 # Normalize link
                 if not link.startswith('http'):
                     link = "https://www.juntadeandalucia.es" + link
 
-                # Remove redirect parameters from link for cleanliness
+                # Remove redirect parameters
                 if '?' in link:
                     link = link.split('?')[0]
 
-                # Dates are hard to find in the summary page, so we use a placeholder
-                # or try to extract it from the text if present
-                date = ""
+                # Find the date in the specific date class
+                date_el = article.find('div', class_='adt-novedades-ceps__item-data__date')
+                date = date_el.get_text(strip=True) if date_el else ""
 
                 news_items.append({'title': text, 'link': link, 'date': date})
 
