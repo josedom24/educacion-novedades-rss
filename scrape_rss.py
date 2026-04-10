@@ -14,27 +14,28 @@ def scrape_novedades():
         response.raise_for_status()
         soup = BeautifulSoup(response.text, 'html.parser')
 
-        # This is a placeholder logic. In a real scenario, we'd inspect the HTML
-        # structure of the target page to find the correct selectors.
-        # Assuming news items are in a list or grid.
         news_items = []
 
-        # Example: searching for elements that might contain news (this needs verification)
-        # For now, I'll implement a basic search for <a> tags with meaningful text
-        # to avoid the NameError and provide a working base.
-        for article in soup.find_all('div', class_='novedades-item'): # Hypothetical class
-            title_el = article.find('a')
-            if title_el:
-                title = title_el.get_text(strip=True)
-                link = title_el['href']
+        # We found that news items are <a> tags with long text and specific href patterns
+        # focusing on links that contain '/web/educacion/w/' (common pattern for news items here)
+        for a in soup.find_all('a', href=True):
+            text = a.get_text(strip=True)
+            link = a['href']
+
+            if len(text) > 50 and '/web/educacion/w/' in link:
+                # Normalize link
                 if not link.startswith('http'):
-                    link = URL + link # simplified relative link handling
+                    link = "https://www.juntadeandalucia.es" + link
 
-                # Attempt to find a date
-                date_el = article.find('span', class_='date')
-                date = date_el.get_text(strip=True) if date_el else ""
+                # Remove redirect parameters from link for cleanliness
+                if '?' in link:
+                    link = link.split('?')[0]
 
-                news_items.append({'title': title, 'link': link, 'date': date})
+                # Dates are hard to find in the summary page, so we use a placeholder
+                # or try to extract it from the text if present
+                date = ""
+
+                news_items.append({'title': text, 'link': link, 'date': date})
 
         return news_items
     except Exception as e:
